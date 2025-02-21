@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Préstamos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            width: 100%;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
+
+        /* Diseño Responsivo */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            button {
+                padding: 12px;
+            }
+
+            footer {
+                position: relative;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .form-group input, button {
+                font-size: 14px;
+            }
+
+            footer {
+                position: relative;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Título de la página -->
+    <header>
+        <h1>Gestión de Préstamos</h1>
+    </header>
+
+    <div class="container">
+        <!-- Registro de cliente -->
+        <div class="section">
+            <h2>Registrar Cliente</h2>
+            <div class="form-group">
+                <label for="clientName">Nombre del Cliente</label>
+                <input type="text" id="clientName" placeholder="Nombre completo">
+            </div>
+
+            <div class="form-group">
+                <label for="loanAmount">Monto del Préstamo</label>
+                <input type="number" id="loanAmount" placeholder="Monto del préstamo en $">
+            </div>
+
+            <button onclick="registerClient()">Registrar Cliente</button>
+        </div>
+
+        <!-- Registro de pago -->
+        <div class="section">
+            <h2>Registrar Pago de Cuota</h2>
+            <div class="form-group">
+                <label for="paymentClient">Seleccionar Cliente</label>
+                <select id="paymentClient">
+                    <option value="">Selecciona un cliente</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="paymentAmount">Monto de la Cuota Pagada</label>
+                <input type="number" id="paymentAmount" placeholder="Monto de la cuota pagada en $">
+            </div>
+
+            <div class="form-group">
+                <label for="paymentDate">Fecha de Pago</label>
+                <input type="date" id="paymentDate">
+            </div>
+
+            <button onclick="registerPayment()">Registrar Pago</button>
+        </div>
+
+        <!-- Tabla de clientes registrados -->
+        <div class="section">
+            <h3>Clientes Registrados</h3>
+            <table id="clientTable">
+                <thead>
+                    <tr>
+                        <th>Nombre del Cliente</th>
+                        <th>Monto del Préstamo</th>
+                        <th>Saldo Restante</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="clientList"></tbody>
+            </table>
+        </div>
+
+        <!-- Tabla de pagos realizados -->
+        <div class="section">
+            <h3>Pagos Realizados</h3>
+            <table id="paymentTable">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Monto Pagado</th>
+                        <th>Fecha de Pago</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Gestión de Préstamos | Todos los derechos reservados</p>
+    </footer>
+
+    <script>
+        // Recuperar los datos de localStorage
+        let clients = JSON.parse(localStorage.getItem('clients')) || [];
+        let payments = JSON.parse(localStorage.getItem('payments')) || [];
+
+        // Cargar los datos al iniciar la página
+        document.addEventListener("DOMContentLoaded", function () {
+            displayClients();
+            displayPayments();
+            loadClientSelect();
+        });
+
+        // Registrar un nuevo cliente
+        function registerClient() {
+            const name = document.getElementById('clientName').value;
+            const amount = parseFloat(document.getElementById('loanAmount').value);
+
+            if (!name || isNaN(amount) || amount <= 0) {
+                alert('Por favor, ingresa un nombre válido y un monto del préstamo.');
+                return;
+            }
+
+            const client = { name, amount, remainingAmount: amount };
+            clients.push(client);
+
+            // Guardar los datos en localStorage
+            localStorage.setItem('clients', JSON.stringify(clients));
+
+            // Agregar cliente a la lista de selección de pagos
+            loadClientSelect();
+
+            // Mostrar clientes registrados
+            displayClients();
+
+            alert('Cliente registrado con éxito');
+        }
+
+        // Registrar el pago de la cuota
+        function registerPayment() {
+            const clientName = document.getElementById('paymentClient').value;
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentDate = document.getElementById('paymentDate').value;
+
+            if (!clientName || isNaN(paymentAmount) || paymentAmount <= 0 || !paymentDate) {
+                alert('Por favor, completa todos los campos correctamente.');
+                return;
+            }
+
+            const client = clients.find(c => c.name === clientName);
+
+            if (client) {
+                client.remainingAmount -= paymentAmount;
+
+                const payment = {
+                    clientName,
+                    paymentAmount,
+                    paymentDate,
+                };
+
+                payments.push(payment);
+
+                // Guardar los datos en localStorage
+                localStorage.setItem('clients', JSON.stringify(clients));
+                localStorage.setItem('payments', JSON.stringify(payments));
+
+                // Mostrar pagos registrados
+                displayPayments();
+
+                alert('Pago registrado con éxito');
+            }
+        }
+
+        // Mostrar los clientes registrados
+        function displayClients() {
+            const clientList = document.getElementById('clientList');
+            clientList.innerHTML = '';
+
+            clients.forEach((client, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${client.name}</td>
+                    <td>$${client.amount}</td>
+                    <td>$${client.remainingAmount.toFixed(2)}</td>
+                    <td><button onclick="deleteClient(${index})">Eliminar</button></td>
+                `;
+                clientList.appendChild(tr);
+            });
+        }
+
+        // Mostrar los pagos realizados
+        function displayPayments() {
+            const paymentList = document.getElementById('paymentList');
+            paymentList.innerHTML = '';
+
+            payments.forEach(payment => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${payment.clientName}</td>
+                    <td>$${payment.paymentAmount}</td>
+                    <td>${payment.paymentDate}</td>
+                `;
+                paymentList.appendChild(tr);
+            });
+        }
+
+        // Cargar los clientes en el select para registrar pagos
+        function loadClientSelect() {
+            const select = document.getElementById('paymentClient');
+            select.innerHTML = '<option value="">Selecciona un cliente</option>';
+
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.name;
+                option.textContent = client.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Eliminar un cliente
+        function deleteClient(index) {
+            const confirmDelete = confirm('¿Estás seguro de que quieres eliminar este cliente?');
+            if (confirmDelete) {
+                // Eliminar el cliente de la lista
+                clients.splice(index, 1);
+
+                // Guardar los datos actualizados en localStorage
+                localStorage.setItem('clients', JSON.stringify(clients));
+
+                // Mostrar la lista actualizada de clientes
+                displayClients();
+
+                alert('Cliente eliminado con éxito');
+            }
+        }
+    </script>
+
+</body>
+</html>
